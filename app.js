@@ -3,6 +3,7 @@ const bodyParser = require('body-parser');
 const db = require('./models/db');// Adjust the path based on where you're importing it
 const cors = require('cors');
 const app = express();
+const sanitizeHtml = require('sanitize-html');
 const port = 3000;
 
 // Use CORS middleware to allow cross-origin requests
@@ -23,11 +24,14 @@ app.use(express.static('public'));
 app.post('/create-blogpost', (req, res) => {
     const { title, content } = req.body;
 
+    //sanitize userInput
+    const sanitizedTitle = sanitizeHtml(title);
+    const sanitizedContent = sanitizeHtml(content);
+
     //secure parameterized query
     const sql = `INSERT INTO Posts (title, content) VALUES (?, ?)`;
-    const values = [title, content];
 
-    db.query(sql, values, (err, result) => {
+    db.query(sql, [sanitizedTitle, sanitizedContent], (err, result) => {
       if (err) {
         console.error('Error inserting into the database', err);
         return res.status(500).send('An error occurred while adding the post');
